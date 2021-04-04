@@ -250,7 +250,7 @@ def unittest(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER, keepdb=F
         verbosity (int): Verbosity of test output
     """
     docker = f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot"
-    command = f"python manage.py test eox_notices --verbosity={verbosity}"
+    command = f"nautobot-server test eox_notices --verbosity={verbosity}"
     if keepdb:
         command += " --keepdb"
     context.run(f'{docker} sh -c "{command}"', env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver}, pty=True)
@@ -360,13 +360,11 @@ def tests(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
     flake8(context, nautobot_ver=nautobot_ver, python_ver=python_ver)
     print("Running bandit...")
     bandit(context, nautobot_ver=nautobot_ver, python_ver=python_ver)
-    print("Running pydocstyle...")
-    pydocstyle(context, nautobot_ver=nautobot_ver, python_ver=python_ver)
-    print("Running pylint...")
-    pylint(context, nautobot_ver=nautobot_ver, python_ver=python_ver)
+    # print("Running pydocstyle...")
+    # pydocstyle(context, nautobot_ver=nautobot_ver, python_ver=python_ver)
+    # print("Running pylint...")
+    # pylint(context, nautobot_ver=nautobot_ver, python_ver=python_ver)
     print("Running unit tests...")
     unittest(context, nautobot_ver=nautobot_ver, python_ver=python_ver)
-    # print("Running yamllint...")
-    # yamllint(context, NAME, python_ver)
 
     print("All tests have passed!")

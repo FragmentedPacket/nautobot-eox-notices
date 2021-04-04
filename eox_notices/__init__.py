@@ -20,5 +20,10 @@ class EoxNoticesConfig(PluginConfig):
     default_settings = {}
     caching_config = {}
 
+    def ready(self):
+        """Register custom signals."""
+        super().ready()
+        import eox_notices.signals  # noqa: F401
+
 
 config = EoxNoticesConfig  # pylint:disable=invalid-name

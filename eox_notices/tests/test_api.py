@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from users.models import Token
+from nautobot.users.models import Token
 
 User = get_user_model()
 
