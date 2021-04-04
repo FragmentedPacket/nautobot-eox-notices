@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: [3.6, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - name: "Checkout repo"
         uses: "actions/checkout@v2"
@@ -30,7 +30,7 @@ jobs:
         run: "invoke flake8 --python-ver ${{ matrix.python-version }}"
       - name: "Run Bandit"
         run: "invoke bandit --python-ver ${{ matrix.python-version }}"
-      - name: "Run Pylint"
-        run: "invoke pylint --python-ver ${{ matrix.python-version }}"
+      #- name: "Run Pylint"
+      #  run: "invoke pylint --python-ver ${{ matrix.python-version }}"
       - name: "Run Unit Tests"
         run: "invoke unittest --python-ver ${{ matrix.python-version }}"
