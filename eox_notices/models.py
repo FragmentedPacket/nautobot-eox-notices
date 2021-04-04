@@ -12,6 +12,8 @@ from nautobot.dcim.models import Device
 
 
 class EoxNotice(ChangeLoggedModel, BaseModel):
+    """EoxNotice model for plugin."""
+
     # Assign permissions to model
     objects = RestrictedQuerySet.as_manager()
 
@@ -25,10 +27,13 @@ class EoxNotice(ChangeLoggedModel, BaseModel):
     notice_url = models.URLField(blank=True, verbose_name="Notice URL")
 
     class Meta:
+        """Meta attributes for EoxNotice."""
+
         ordering = ("end_of_support", "end_of_sale")
         constraints = [models.UniqueConstraint(fields=["device_type"], name="unique_device_type")]
 
     def __str__(self):
+        """String representation of EoxNotices."""
         if self.end_of_support:
             msg = f"{self.device_type} - End of support: {self.end_of_support}"
         else:
@@ -36,16 +41,26 @@ class EoxNotice(ChangeLoggedModel, BaseModel):
         return msg
 
     def get_absolute_url(self):
+        """Returns the Detail view for EoxNotice models."""
         return reverse("plugins:eox_notices:eoxnotice", kwargs={"pk": self.pk})
 
-    def save(self, signal=False):
+    def save(self, *args, **kwargs):
+        """Override save to add devices to EoxNotice found that match the device-type.
+
+        Args:
+            signal (bool): Whether the save is being called from a signal.
+        """
         # Update the model with related devices that are of the specific device type
-        if not signal:
+        if not kwargs.get("signal"):
             related_devices = Device.objects.filter(device_type=self.device_type)
             self.devices.add(*related_devices)
-        super().save()
+
+        # Full clean to assert custom validation in clean() for ORM, etc.
+        super().full_clean()
+        super().save(*args, **kwargs)
 
     def clean(self):
+        """Override clean to do custom validation."""
         super().clean()
 
         if not self.end_of_sale and not self.end_of_support:
