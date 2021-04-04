@@ -10,7 +10,7 @@ def past_due(end_of):
     today = date.today()
     if end_of is None:
         return False
-    if today > end_of:
+    if today >= end_of:
         return True
 
 
