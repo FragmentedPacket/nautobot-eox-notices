@@ -1,0 +1,36 @@
+name: "All CI related tasks"
+
+on: ["push", "pull_request"]
+
+jobs:
+  linting_unit_testing:
+    runs-on: "ubuntu-latest"
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: [3.6, 3.8, 3.9]
+    steps:
+      - name: "Checkout repo"
+        uses: "actions/checkout@v2"
+      - name: "Set up Python ${{ matrix.python-version }}"
+        uses: "actions/setup-python@v2"
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: "Install and configure Poetry"
+        uses: "snok/install-poetry@v1.1.5"
+        with:
+          virtualenvs-create: false
+      - name: "Install Python packages"
+        run: "poetry install"
+      - name: "Build Testing Container"
+        run: "invoke build --python-ver ${{ matrix.python-version }}"
+      - name: "Run Black"
+        run: "invoke black --python-ver ${{ matrix.python-version }}"
+      - name: "Run Flake8"
+        run: "invoke flake8 --python-ver ${{ matrix.python-version }}"
+      - name: "Run Bandit"
+        run: "invoke bandit --python-ver ${{ matrix.python-version }}"
+      - name: "Run Pylint"
+        run: "invoke pylint --python-ver ${{ matrix.python-version }}"
+      - name: "Run Unit Tests"
+        run: "invoke unittest --python-ver ${{ matrix.python-version }}"
