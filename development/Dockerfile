@@ -11,7 +11,8 @@ WORKDIR $NAUTOBOT_ROOT
 # Upgrade pip and install poetry as well as configure poetry
 RUN pip install --upgrade pip\
     && pip install poetry \
-    && poetry config virtualenvs.create false
+    && poetry config virtualenvs.create false \
+    && pip install django-debug-toolbar
 
 # -------------------------------------------------------------------------------------
 # Install Nautobot
