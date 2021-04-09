@@ -296,4 +296,5 @@ fabric.properties
 *.code-workspace
 
 # Rando
+docker-compose.override.yml
 override.env
