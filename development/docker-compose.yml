@@ -16,6 +16,7 @@ services:
       - "redis"
     env_file:
       - "./dev.env"
+      - "../override.env"
     volumes:
       - "./nautobot_config.py:/opt/nautobot/nautobot_config.py"
       - "../eox_notices:/source/eox_notices"
