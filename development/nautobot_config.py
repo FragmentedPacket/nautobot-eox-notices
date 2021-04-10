@@ -59,6 +59,22 @@ RQ_QUEUES = {
         "SSL": os.getenv("REDIS_SSL", False),
         "DEFAULT_TIMEOUT": 300,
     },
+    "webhooks": {
+        "HOST": os.getenv("REDIS_HOST", "localhost"),
+        "PORT": os.getenv("REDIS_PORT", 6379),
+        "DB": 0,
+        "PASSWORD": os.getenv("REDIS_PASSWORD", ""),
+        "SSL": os.getenv("REDIS_SSL", False),
+        "DEFAULT_TIMEOUT": 300,
+    },
+    "custom_fields": {
+        "HOST": os.getenv("REDIS_HOST", "localhost"),
+        "PORT": os.getenv("REDIS_PORT", 6379),
+        "DB": 0,
+        "PASSWORD": os.getenv("REDIS_PASSWORD", ""),
+        "SSL": os.getenv("REDIS_SSL", False),
+        "DEFAULT_TIMEOUT": 300,
+    },
     # "with-sentinel": {
     #     "SENTINELS": [
     #         ("mysentinel.redis.example.com", 6379)
@@ -330,5 +346,6 @@ if sentry_dsn:
         traces_sample_rate=1.0,
         # If you wish to associate users to errors (assuming you are using
         # django.contrib.auth) you may enable sending PII data.
-        send_default_pii=True,
+        # send_default_pii=True,
+        debug=True,
     )

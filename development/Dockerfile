@@ -34,4 +34,9 @@ RUN poetry install --no-interaction --no-ansi --no-root
 COPY . /source
 RUN poetry install --no-interaction --no-ansi
 
+# Used if someone wants to override the entrypoint and provision a super user
+COPY development/docker-entrypoint.sh /tmp/nautobot/docker-entrypoint.sh
+
 WORKDIR $NAUTOBOT_ROOT
+
+ENTRYPOINT ["/tmp/nautobot/docker-entrypoint.sh"]

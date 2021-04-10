@@ -55,6 +55,9 @@ class EoxNotice(ChangeLoggedModel, BaseModel):
             related_devices = Device.objects.filter(device_type=self.device_type)
             self.devices.add(*related_devices)
 
+        # Attempt to pop signal if it exists before passing to super().save()
+        kwargs.pop("signal", None)
+
         # Full clean to assert custom validation in clean() for ORM, etc.
         super().full_clean()
         super().save(*args, **kwargs)

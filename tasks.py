@@ -4,14 +4,32 @@ import os
 from invoke import task
 
 PYTHON_VER = os.getenv("PYTHON_VER", "3.8")
-NAUTOBOT_VER = os.getenv("NAUTOBOT_VER", "v1.0.0b2")
+NAUTOBOT_VER = os.getenv("NAUTOBOT_VER", "v1.0.0b3")
 
 # Name of the docker image/container
 NAME = os.getenv("IMAGE_NAME", "nautobot-eox-notices")
 PWD = os.getcwd()
 
-COMPOSE_FILE = "development/docker-compose.yml"
 BUILD_NAME = "eox_notices"
+COMPOSE_DIR = os.path.join(os.path.dirname(__file__), "development/")
+COMPOSE_FILE = os.path.join(COMPOSE_DIR, "docker-compose.yml")
+COMPOSE_OVERRIDE_FILE = os.path.join(COMPOSE_DIR, "docker-compose.override.yml")
+COMPOSE_COMMAND = f'docker-compose --project-directory "{COMPOSE_DIR}" -f "{COMPOSE_FILE}" -p "{BUILD_NAME}"'
+
+if os.path.isfile(COMPOSE_OVERRIDE_FILE):
+    COMPOSE_COMMAND += f' -f "{COMPOSE_OVERRIDE_FILE}"'
+
+
+def docker_compose(context, command, **kwargs):
+    """Helper function for running a specific docker-compose command with all appropriate parameters and environment.
+
+    Args:
+        context (obj): Used to run specific commands
+        command (str): Command string to append to the "docker-compose ..." command, such as "build", "up", etc.
+        **kwargs: Passed through to the context.run() call.
+    """
+    print(f'Running docker-compose command "{command}"')
+    return context.run(f"{COMPOSE_COMMAND} {command}", **kwargs)
 
 
 # ------------------------------------------------------------------------------
@@ -28,17 +46,14 @@ def build(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER, nocache=Fal
         nocache (bool): Do not use cache when building the image
         forcerm (bool): Always remove intermediate containers
     """
-    command = (
-        f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} build --build-arg nautobot_ver={nautobot_ver}"
-        f" --build-arg python_ver={python_ver}"
-    )
+    command = f"build --build-arg nautobot_ver={nautobot_ver} --build-arg python_ver={python_ver}"
 
     if nocache:
         command += " --no-cache"
     if forcerm:
         command += " --force-rm"
 
-    context.run(command, env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver})
+    docker_compose(context, command, env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver})
 
 
 @task
@@ -78,9 +93,8 @@ def debug(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         python_ver (str): Will use the Python version docker image to build from
     """
     print("Starting Netbox .. ")
-    context.run(
-        f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} up",
-        env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
+    docker_compose(
+        context, "up", env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
     )
 
 
@@ -94,9 +108,8 @@ def start(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         python_ver (str): Will use the Python version docker image to build from
     """
     print("Starting Netbox in detached mode.. ")
-    context.run(
-        f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} up -d",
-        env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
+    docker_compose(
+        context, "up -d", env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
     )
 
 
@@ -110,9 +123,8 @@ def stop(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         python_ver (str): Will use the Python version docker image to build from
     """
     print("Stopping Netbox .. ")
-    context.run(
-        f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} down",
-        env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
+    docker_compose(
+        context, "down", env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
     )
 
 
@@ -126,10 +138,7 @@ def restart(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         python_ver (str): Will use the Python version docker image to build from
     """
     print("Restarting Netbox in detached mode.. ")
-    context.run(
-        f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} restart",
-        env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
-    )
+    docker_compose(context, "restart", env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver})
 
 
 @task
@@ -141,9 +150,8 @@ def destroy(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         nautobot_ver (str): Nautobot version to use to build the container
         python_ver (str): Will use the Python version docker image to build from
     """
-    context.run(
-        f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} down",
-        env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
+    docker_compose(
+        context, "down", env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
     )
     context.run(
         f"docker volume rm -f {BUILD_NAME}_pgdata_eox_notices",
@@ -163,8 +171,9 @@ def nbshell(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         nautobot_ver (str): Nautobot version to use to build the container
         python_ver (str): Will use the Python version docker image to build from
     """
-    context.run(
-        f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot nautobot-server nbshell",
+    docker_compose(
+        context,
+        "run nautobot nautobot-server nbshell",
         env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
         pty=True,
     )
@@ -179,10 +188,8 @@ def cli(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         nautobot_ver (str): Nautobot version to use to build the container
         python_ver (str): Will use the Python version docker image to build from
     """
-    context.run(
-        f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot bash",
-        env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
-        pty=True,
+    docker_compose(
+        context, "run nautobot bash", env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver}, pty=True,
     )
 
 
@@ -196,8 +203,10 @@ def create_user(context, user="admin", nautobot_ver=NAUTOBOT_VER, python_ver=PYT
         nautobot_ver (str): Nautobot version to use to build the container
         python_ver (str): Will use the Python version docker image to build from
     """
-    context.run(
-        f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot nautobot-server createsuperuser --username {user}",
+    print(f"Starting user creation for user {user}")
+    docker_compose(
+        context,
+        f"run nautobot nautobot-server createsuperuser --username {user}",
         env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
         pty=True,
     )
@@ -213,25 +222,19 @@ def makemigrations(context, name="", nautobot_ver=NAUTOBOT_VER, python_ver=PYTHO
         nautobot_ver (str): Nautobot version to use to build the container
         python_ver (str): Will use the Python version docker image to build from
     """
-    context.run(
-        f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} up -d postgres",
-        env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
+    docker_compose(
+        context, "up -d postgres", env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
     )
 
+    command = "run nautobot nautobot-server makemigrations"
     if name:
-        context.run(
-            f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot nautobot-server makemigrations --name {name}",
-            env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
-        )
-    else:
-        context.run(
-            f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot nautobot-server makemigrations",
-            env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
-        )
+        command += f" --name {name}"
 
-    context.run(
-        f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} down",
-        env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
+    # Run migrations
+    docker_compose(context, command, env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver})
+    # Spin down the environment after migrations have been created
+    docker_compose(
+        context, "down", env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
     )
 
 
@@ -249,7 +252,7 @@ def unittest(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER, keepdb=F
         keepdb (bool): Whether to keep the test database for later reuse
         verbosity (int): Verbosity of test output
     """
-    docker = f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot"
+    docker = COMPOSE_COMMAND + "run nautobot"
     command = f"nautobot-server test eox_notices --verbosity={verbosity}"
     if keepdb:
         command += " --keepdb"
@@ -265,7 +268,7 @@ def pylint(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         nautobot_ver (str): Nautobot version to use to build the container
         python_ver (str): Will use the Python version docker image to build from
     """
-    docker = f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot"
+    docker = COMPOSE_COMMAND + "run nautobot"
     # We exclude the /migrations/ directory since it is autogenerated code
     context.run(
         f"{docker} sh -c \"cd /source && find . -name '*.py' -not -path '*/migrations/*' | "
@@ -284,7 +287,7 @@ def black(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         nautobot_ver (str): Nautobot version to use to build the container
         python_ver (str): Will use the Python version docker image to build from
     """
-    docker = f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot"
+    docker = COMPOSE_COMMAND + "run nautobot"
     context.run(
         f'{docker} sh -c "cd /source && black --check --diff ."',
         env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
@@ -301,7 +304,7 @@ def flake8(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         nautobot_ver (str): Nautobot version to use to build the container
         python_ver (str): Will use the Python version docker image to build from
     """
-    docker = f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot"
+    docker = COMPOSE_COMMAND + "run nautobot"
     context.run(
         f"{docker} sh -c \"cd /source && find . -name '*.py' | xargs flake8\"",
         env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
@@ -318,7 +321,7 @@ def pydocstyle(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         nautobot_ver (str): Nautobot version to use to build the container
         python_ver (str): Will use the Python version docker image to build from
     """
-    docker = f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot"
+    docker = COMPOSE_COMMAND + "run nautobot"
     # We exclude the /migrations/ directory since it is autogenerated code
     context.run(
         f"{docker} sh -c \"cd /source && find . -name '*.py' -not -path '*/migrations/*' | xargs pydocstyle\"",
@@ -336,7 +339,7 @@ def bandit(context, nautobot_ver=NAUTOBOT_VER, python_ver=PYTHON_VER):
         nautobot_ver (str): Nautobot version to use to build the container
         python_ver (str): Will use the Python version docker image to build from
     """
-    docker = f"docker-compose -f {COMPOSE_FILE} -p {BUILD_NAME} run nautobot"
+    docker = COMPOSE_COMMAND + "run nautobot"
     context.run(
         f'{docker} sh -c "cd /source && bandit --recursive ./ --configfile .bandit.yml"',
         env={"NAUTOBOT_VER": nautobot_ver, "PYTHON_VER": python_ver},
