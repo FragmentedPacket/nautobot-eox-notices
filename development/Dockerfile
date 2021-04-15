@@ -3,10 +3,11 @@ ARG python_ver=3.7
 FROM python:${python_ver}
 
 ARG nautobot_ver=v1.0.0b2
+ARG nautobot_root=/opt/nautobot
 ENV PYTHONUNBUFFERED 1
-ENV NAUTOBOT_ROOT /opt/nautobot
+ENV NAUTOBOT_ROOT ${nautobot_root}
 
-WORKDIR $NAUTOBOT_ROOT
+WORKDIR ${NAUTOBOT_ROOT}
 
 # Upgrade pip and install poetry as well as configure poetry
 RUN pip install --upgrade pip\
@@ -37,6 +38,6 @@ RUN poetry install --no-interaction --no-ansi
 # Used if someone wants to override the entrypoint and provision a super user
 COPY development/docker-entrypoint.sh /tmp/nautobot/docker-entrypoint.sh
 
-WORKDIR $NAUTOBOT_ROOT
+WORKDIR ${NAUTOBOT_ROOT}
 
 ENTRYPOINT ["/tmp/nautobot/docker-entrypoint.sh"]

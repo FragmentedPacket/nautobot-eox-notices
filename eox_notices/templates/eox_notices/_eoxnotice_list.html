@@ -1,5 +1,24 @@
 {% extends 'base.html' %}
 {% load render_table from django_tables2 %}
+{% load plugins %}
+{% load buttons %}
+
+{% block header %}
+<div class="pull-right">
+    <div class="pull-right noprint">
+        {% plugin_buttons object %}
+        {% if perms.extras.add_status %}
+            {% clone_button object %}
+        {% endif %}
+        {% if perms.extras.change_status %}
+            {% edit_button object %}
+        {% endif %}
+        {% if perms.extras.delete_status %}
+            {% delete_button object %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="pull-right noprint">

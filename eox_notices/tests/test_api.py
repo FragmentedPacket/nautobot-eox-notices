@@ -1,28 +1,29 @@
 """Unit tests for eox_notices."""
 from django.contrib.auth import get_user_model
-from django.test import TestCase
-from django.urls import reverse
-from rest_framework import status
-from rest_framework.test import APIClient
 
-from nautobot.users.models import Token
+from nautobot.utilities.testing import APIViewTestCases
+from nautobot.dcim.models import DeviceType, Manufacturer
+
+from eox_notices.models import EoxNotice
 
 User = get_user_model()
 
 
-class PlaceholderAPITest(TestCase):
+class EoxNoticeAPITest(APIViewTestCases.APIViewTestCase):
     """Test the EoxNotices API."""
+
+    model = EoxNotice
+    bulk_update_data = {"notice_url": "https://cisco.com/eox"}
 
     def setUp(self):
         """Create a superuser and token for API calls."""
-        self.user = User.objects.create(username="testuser", is_superuser=True)
-        self.token = Token.objects.create(user=self.user)
-        self.client = APIClient()
-        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
+        self.manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
+        self.device_types = (
+            DeviceType.objects.create(model="c9300-24", slug="c9300-24", manufacturer=self.manufacturer),
+            DeviceType.objects.create(model="c9300-48", slug="c9300-48", manufacturer=self.manufacturer),
+            DeviceType.objects.create(model="c9500-24", slug="c9500-24", manufacturer=self.manufacturer),
+        )
 
-    def test_placeholder(self):
-        """Verify that devices can be listed."""
-        url = reverse("dcim-api:device-list")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], 0)
+        EoxNotice.objects.create(device_type=self.device_types[0], end_of_sale="2021-04-01")
+        EoxNotice.objects.create(device_type=self.device_types[1], end_of_sale="2021-04-01")
+        EoxNotice.objects.create(device_type=self.device_types[2], end_of_sale="2021-04-01")

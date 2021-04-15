@@ -13,7 +13,7 @@ class EoxNoticesListView(PermissionRequiredMixin, ObjectListView):
     filterset = EoxNoticeFilter
     filterset_form = EoxNoticeFilterForm
     table = EoxNoticesTable
-    template_name = "eox_notices/eoxnotice_list.html"
+    # template_name = "eox_notices/eoxnotice_list.html"
     permission_required = "eox_notices.view_eoxnotice"
     action_buttons = ("add",)
 
