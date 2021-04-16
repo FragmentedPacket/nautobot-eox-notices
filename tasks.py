@@ -172,7 +172,6 @@ def unittest(context, keepdb=False, verbosity=1):
     docker_compose(context, command, pty=True)
 
 
-# Commenting out as Nautobot does magic stuff that makes loading settings difficult
 @task
 def pylint(context):
     """Run pylint code analysis."""
@@ -224,8 +223,8 @@ def tests(context):
     bandit(context)
     print("Running pydocstyle...")
     pydocstyle(context)
-    # print("Running pylint...")
-    # pylint(context)
+    print("Running pylint...")
+    pylint(context)
     print("Running unit tests...")
     unittest(context)
 
