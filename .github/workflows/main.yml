@@ -23,6 +23,6 @@ jobs:
       - name: "Install Python packages"
         run: "poetry install"
       - name: "Build Testing Container"
-        run: "PYTHON_VER${{ matrix.python-version }} invoke build"
+        run: "PYTHON_VER=${{ matrix.python-version }} invoke build"
       - name: "Run All Tests"
-        run: "PYTHON_VER${{ matrix.python-version }} invoke tests"
+        run: "PYTHON_VER=${{ matrix.python-version }} invoke tests"
