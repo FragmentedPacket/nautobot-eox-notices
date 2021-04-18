@@ -1,6 +1,6 @@
 
 ARG python_ver=3.7
-FROM python:${python_ver}
+FROM python:${python_ver}-slim
 
 ARG nautobot_ver=v1.0.0b2
 ARG nautobot_root=/opt/nautobot
@@ -8,6 +8,14 @@ ENV PYTHONUNBUFFERED 1
 ENV NAUTOBOT_ROOT ${nautobot_root}
 
 WORKDIR ${NAUTOBOT_ROOT}
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install --no-install-recommends -y git mime-support && \
+    apt-get autoremove -y && \
+    apt-get clean all && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip --no-cache-dir install --upgrade pip wheel
 
 # Upgrade pip and install poetry as well as configure poetry
 RUN pip install --upgrade pip\

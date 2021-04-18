@@ -11,7 +11,6 @@ from .models import EoxNotice
 @receiver(post_save, sender=Device)
 def add_new_device_to_notice(sender, instance, **kwargs):
     """Add/Remove Devices from EoXNotices when device is either updated or created."""
-
     # Attempt to obtain EoxNotice for the device's device type
     try:
         dt_notice = EoxNotice.objects.get(device_type=instance.device_type)
@@ -27,7 +26,6 @@ def add_new_device_to_notice(sender, instance, **kwargs):
 @receiver(pre_save, sender=Device)
 def update_existing_device_to_notice(sender, instance, **kwargs):
     """Check to see if device_type has changed on device and update EoxNotice as necessary."""
-
     # If device does not exist yet, skip logic to update
     if instance.id is None:
         return
