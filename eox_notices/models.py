@@ -1,7 +1,5 @@
 """Django models for eox_notices plugin."""
 
-from taggit.managers import TaggableManager
-
 from django.db import models
 from django.urls import reverse
 from django.core.exceptions import ValidationError
