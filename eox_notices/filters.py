@@ -4,7 +4,6 @@ import django_filters
 from django.db.models import Q
 
 from nautobot.dcim.models import Device, DeviceType
-
 from .models import EoxNotice
 
 
@@ -36,6 +35,7 @@ class EoxNoticeFilter(django_filters.FilterSet):
         """Meta attributes for filter."""
 
         model = EoxNotice
+
         fields = ["end_of_sale", "end_of_support", "end_of_sw_releases", "end_of_security_patches", "notice_url"]
 
     def search(self, queryset, name, value):

@@ -18,7 +18,7 @@ from .filters import EoxNoticeFilter
 class EoxNoticesListView(PermissionRequiredMixin, ObjectListView):
     """List view."""
 
-    queryset = EoxNotice.objects.prefetch_related("devices", "device_type").all()
+    queryset = EoxNotice.objects.prefetch_related("devices", "device_type")
     filterset = EoxNoticeFilter
     filterset_form = EoxNoticeFilterForm
     table = EoxNoticesTable
