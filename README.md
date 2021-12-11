@@ -2,6 +2,8 @@
 
 A plugin for [Nautobot](https://github.com/nautobot/nautobot).
 
+⚠️⚠️This has been deprecated in favor of [Device Lifecycle Plugin](https://github.com/nautobot/nautobot-plugin-device-lifecycle-mgmt)⚠️⚠️
+
 ## Installation
 
 The plugin is available as a Python package in pypi and can be installed with pip
